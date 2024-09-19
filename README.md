@@ -5,7 +5,7 @@ For example of how to export a method to a JSON string, and how to take a JSON s
 
 This project contains 2 classes:
 * **GenerateMethod** - Implements logic to take all the data of a method, parse it to dedicated structs, and serialize the structs to a JSON string.
-* **DynamicExecute** - Implements logic to deserialize the JSON string to the same dedicated structs, build a Dynamic Method from this information, resolve members used in the method and execute it.
+* **DynamicExecute** - Implements logic to deserialize the JSON string to the same dedicated structs, build a DynamicMethod from this information, resolve members used in the method and execute it.
 
 And 2 structs:
 * **Method** - Contains information relevant for building and executing a method, such as declarations, parameter types, local variables in the method and more.
