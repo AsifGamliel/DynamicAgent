@@ -1,7 +1,7 @@
 # DynamicAgent
 
 **NOTE:** This is a little PoC for demonstrating and learning the concept of DynamicMethods, and it probably doesn't cover all edge cases when converting a regular method to a DynamicMethod.  
-Feel free to edit this and update on issues you find!
+Feel free to edit this and update on issues you find!  
 This project allows serializing a method to a string, so it can then be encrypted / sent over the network / executed in another program.  
   
 For example of how to export a method to a JSON string, and how to take a JSON string and execute a method from it - check out the 'Program.cs' file.  
