@@ -37,4 +37,10 @@ For example:
 ```C#
 string s = (string)DynamicExecute.ExecuteMethod(methodJson);
 ```
-This method returns and *object*, but we know the method we currently execute ("CalculateMD5") returns a string, so we cast it.
+This method returns and *object*, but we know the method we currently execute ("CalculateMD5") returns a string, so we cast it.  
+  
+# Learn more
+If you want to really understand what's going on here, and expand your knowledge about  .NET and DynamicMethods, jump to my blog about it!  
+  
+* **Part 1** - https://medium.com/@asifgamliel/all-about-dynamicmethods-part-1-54a12231b0fc
+* **Part 2** - https://medium.com/@asifgamliel/all-about-dynamicmethods-part-2-cbe745ef7ec5
