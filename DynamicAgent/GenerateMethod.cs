@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Collections.Generic;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace DynamicAgent
@@ -145,11 +146,23 @@ namespace DynamicAgent
 
         private static void TryResolveToken(Module module, ref List<InlineTokenInfo> tokensList, int token, int index)
         {
-            if (token >= 0x70000000 && token < 0x7000FFFF)
+            // Initialize a 'InlineTokenInfo' struct and start set it's values by the current member's info
+            InlineTokenInfo definition = new InlineTokenInfo();
+            definition.IsGenericMethod = false;
+            definition.IsGenericMethodDefinition = false;
+            definition.ContainsGenericParameters = false;
+            definition.GenericParameters = new List<string>();
+
+            if (token >= 0x70000000 && token < 0x70FFFFFF)
             {
-                // Strings, with their tokens, are defined in their original binary, so if we create a JSON from a method,
-                // send it to execution on another machine (or even another program), we won't be able to use those strings
-                throw new Exception("Method can't contain any strings");
+                string b64str = Convert.ToBase64String(Encoding.UTF8.GetBytes(module.ResolveString(token)));
+                definition.TypeName = "System";
+                definition.MemberType = "String";
+                definition.FullName = b64str;
+                definition.Index = index;
+                tokensList.Add(definition);
+
+                return;
             }
 
             MemberInfo memberInfo;
@@ -166,13 +179,6 @@ namespace DynamicAgent
                 // to resolve them, so we'll exit and leave them as they are.
                 return;
             }
-
-            // Initialize a 'InlineTokenInfo' struct and start set it's values by the current member's info
-            InlineTokenInfo definition = new InlineTokenInfo();
-            definition.IsGenericMethod = false;
-            definition.IsGenericMethodDefinition = false;
-            definition.ContainsGenericParameters = false;
-            definition.GenericParameters = new List<string>();
 
             if (memberInfo.MemberType == MemberTypes.TypeInfo || memberInfo.MemberType == MemberTypes.NestedType)
             {

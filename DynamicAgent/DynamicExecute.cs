@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Text.Json;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace DynamicAgent
@@ -93,32 +94,31 @@ namespace DynamicAgent
             // we need to use it to get the token)
             int tokenForDynamicMethod;
 
-            if (tokenInfo.MemberType == "RuntimeType")
+            switch (tokenInfo.MemberType)
             {
-                // The current member is a 'Type'
-                TypeInfo typeInfo = Type.GetType(tokenInfo.TypeName).GetTypeInfo();
-                // Get it's token 
-                tokenForDynamicMethod = dynamicILInfo.GetTokenFor(typeInfo.TypeHandle);
+                case "String": // The current member is a string
+                    string str = Encoding.UTF8.GetString(Convert.FromBase64String(tokenInfo.FullName));
+                    tokenForDynamicMethod = dynamicILInfo.GetTokenFor(str);
+                    break;
+                case "RuntimeType": // The current member is a 'Type'
+                    TypeInfo typeInfo = Type.GetType(tokenInfo.TypeName).GetTypeInfo();
+                    tokenForDynamicMethod = dynamicILInfo.GetTokenFor(typeInfo.TypeHandle);
+                    break;
+                case "RtFieldInfo": // The current member is a type's 'Field'
+                    FieldInfo fieldInfo = Type.GetType(tokenInfo.TypeName).GetField(tokenInfo.FullName);
+                    tokenForDynamicMethod = dynamicILInfo.GetTokenFor(fieldInfo.FieldHandle, ((TypeInfo)fieldInfo.DeclaringType).TypeHandle);
+                    break;
+                case "Constructor": // The current member is a constructor method
+                    ConstructorInfo constructorInfo = GetConstructorInfo(tokenInfo);
+                    tokenForDynamicMethod = dynamicILInfo.GetTokenFor(constructorInfo.MethodHandle, ((TypeInfo)constructorInfo.DeclaringType).TypeHandle);
+                    break;
+                case "Method": // The current member is a regular method
+                    MethodInfo methodInfo = GetMethodInfo(tokenInfo);
+                    tokenForDynamicMethod = dynamicILInfo.GetTokenFor(methodInfo.MethodHandle, ((TypeInfo)methodInfo.DeclaringType).TypeHandle);
+                    break;
+                default:
+                    throw new NotSupportedException($"Invalid member type: '{(string.IsNullOrWhiteSpace(tokenInfo.MemberType) ? "" : tokenInfo.MemberType)}'");
             }
-            else if (tokenInfo.MemberType == "RtFieldInfo")
-            {
-                // The current member is a type's 'Field'
-                FieldInfo fieldInfo = Type.GetType(tokenInfo.TypeName).GetField(tokenInfo.FullName);
-                tokenForDynamicMethod = dynamicILInfo.GetTokenFor(fieldInfo.FieldHandle, ((TypeInfo)fieldInfo.DeclaringType).TypeHandle);
-            }
-            else if (tokenInfo.MemberType == "Constructor")
-            {
-                // The current member is a constructor method
-                ConstructorInfo constructorInfo = GetConstructorInfo(tokenInfo);
-                tokenForDynamicMethod = dynamicILInfo.GetTokenFor(constructorInfo.MethodHandle, ((TypeInfo)constructorInfo.DeclaringType).TypeHandle);
-            }
-            else if (tokenInfo.MemberType == "Method")
-            {
-                // The current member is a regular method
-                MethodInfo methodInfo = GetMethodInfo(tokenInfo);
-                tokenForDynamicMethod = dynamicILInfo.GetTokenFor(methodInfo.MethodHandle, ((TypeInfo)methodInfo.DeclaringType).TypeHandle);
-            }
-            else { throw new NotSupportedException($"Invalid member type: '{(string.IsNullOrWhiteSpace(tokenInfo.MemberType) ? "" : tokenInfo.MemberType)}'"); }
 
             return tokenForDynamicMethod;
         }
